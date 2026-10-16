@@ -1,0 +1,7 @@
+{
+  "appId": "com.aventador.trade",
+  "appName": "Aventador Trade",
+  "webDir": "www",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": true }
+}

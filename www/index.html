@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Aventador Trade</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+    background:#0B0B0F;
+    color:#e0e0e0;
+    font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:20px 20px 90px;
+    -webkit-font-smoothing:antialiased;
+}
+.wrap { width:100%; max-width:420px; }
+
+.header { text-align:center; margin-bottom:2rem; }
+h1 { font-weight:300; font-size:1.9rem; letter-spacing:3px; color:#ffffff; margin-bottom:.25rem; }
+h1 span { color:#E1A100; font-weight:500; }
+.sub { font-size:.75rem; color:#565656; letter-spacing:3px; text-transform:uppercase; }
+
+/* main screen */
+.screen { display:none; }
+.screen.active { display:block; }
+
+.card {
+    background:#101014; border:1px solid #1f1f24;
+    border-radius:14px; padding:16px 18px; margin-bottom:14px;
+}
+.card-label {
+    font-size:.68rem; letter-spacing:1.5px; text-transform:uppercase;
+    color:#565656; margin-bottom:10px; font-weight:600;
+}
+
+/* price input */
+.price-input {
+    width:100%; background:#0B0B0F; border:1px solid #2a2a30;
+    border-radius:10px; padding:14px 16px; color:#ffffff;
+    font-size:1.3rem; font-family:inherit; font-weight:600;
+    text-align:center; letter-spacing:1px;
+    transition:border-color .2s, box-shadow .2s;
+}
+.price-input:focus {
+    outline:none; border-color:#E1A100;
+    box-shadow:0 0 15px rgba(225,161,0,.25);
+}
+.price-hint {
+    font-size:.7rem; color:#6c6c6c; text-align:center;
+    margin-top:8px; letter-spacing:1px;
+}
+
+/* fps */
+.fps-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:6px 0;
+}
+.fps-value {
+    font-size:1.4rem; color:#2ECC71; font-weight:600;
+    font-family:monospace; letter-spacing:1px;
+}
+.fps-value.low { color:#E1A100; }
+.fps-value.bad { color:#FF5C5C; }
+
+/* status indicator */
+.status-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:8px 0; border-bottom:1px solid #1a1a1e;
+}
+.status-row:last-child { border-bottom:none; padding-bottom:0; }
+.status-row:first-of-type { padding-top:0; }
+.status-name { font-size:.9rem; color:#c8c8c8; font-weight:500; }
+.status-value {
+    display:inline-flex; align-items:center; gap:7px; font-size:.8rem;
+    font-weight:500; padding:3px 10px; border-radius:999px;
+    background:#181818; border:1px solid #262626; color:#9a9a9a;
+}
+.status-dot { width:8px; height:8px; border-radius:50%; background:#4a4a4a; }
+.status-value.work .status-dot { background:#2ecc71; box-shadow:0 0 8px rgba(46,204,113,.7); }
+.status-value.work { color:#7ee2a8; border-color:#1f3a2a; background:#0f1a14; }
+
+/* buttons */
+.btn {
+    width:100%; border-radius:14px; padding:16px 20px;
+    font-size:1rem; font-weight:600; font-family:inherit;
+    letter-spacing:1px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    transition:background .2s, border-color .2s, transform .15s, opacity .2s;
+    text-transform:uppercase; border:1px solid #262630;
+    background:#161620; color:#d0d0d0;
+}
+.btn:not(:disabled):active { transform:scale(.985); }
+.btn:disabled { opacity:.4; cursor:not-allowed; }
+.btn.gold { border-color:#E1A100; background:#1a1408; color:#E1A100; }
+.btn.gold.ready { box-shadow:0 0 20px rgba(225,161,0,.3); }
+.btn.big { padding:20px; font-size:1.1rem; }
+.btn.ghost { background:transparent; border-color:#2a2a30; }
+
+/* slider */
+.slider-wrap { position:relative; padding:6px 0; }
+.slider-value {
+    text-align:center; font-size:1.6rem; color:#E1A100;
+    font-weight:600; font-family:monospace; margin-bottom:10px;
+    letter-spacing:1px;
+}
+.slider-value span { font-size:1rem; color:#6c6c6c; margin-left:6px; }
+input[type=range] {
+    width:100%; -webkit-appearance:none; background:transparent;
+    height:30px;
+}
+input[type=range]::-webkit-slider-runnable-track {
+    height:4px; background:#2a2a30; border-radius:2px;
+}
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance:none; width:22px; height:22px;
+    background:#E1A100; border-radius:50%; margin-top:-9px;
+    box-shadow:0 0 10px rgba(225,161,0,.5);
+    cursor:pointer;
+}
+.slider-labels {
+    display:flex; justify-content:space-between;
+    font-size:.7rem; color:#565656; margin-top:4px;
+    letter-spacing:1px;
+}
+
+/* bottom nav */
+.bottom-nav {
+    position:fixed; bottom:0; left:0; right:0;
+    background:#0E0E12; border-top:1px solid #1f1f24;
+    display:flex; justify-content:space-around;
+    padding:10px 0 max(10px, env(safe-area-inset-bottom));
+    z-index:10;
+}
+.nav-item {
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    padding:6px 20px; cursor:pointer; color:#565656;
+    font-size:.7rem; letter-spacing:1px; text-transform:uppercase;
+    font-weight:600; transition:color .2s;
+}
+.nav-item svg { width:22px; height:22px; }
+.nav-item.active { color:#E1A100; }
+.nav-item.active svg { filter:drop-shadow(0 0 6px rgba(225,161,0,.5)); }
+
+/* toast */
+.toast {
+    position:fixed; bottom:100px; left:50%; transform:translateX(-50%) translateY(100px);
+    background:#1a1408; border:1px solid #E1A100; color:#E1A100;
+    padding:10px 20px; border-radius:10px; font-size:.85rem;
+    opacity:0; pointer-events:none; transition:all .3s;
+    z-index:100; max-width:80%; text-align:center;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="header">
+        <h1>Aventador <span>Trade</span></h1>
+        <p class="sub">auto sniper</p>
+    </div>
+
+    <!-- MAIN SCREEN -->
+    <div class="screen active" id="screenMain">
+        <div class="card">
+            <div class="card-label">Максимальная цена</div>
+            <input type="number" step="0.01" min="0" class="price-input"
+                   id="priceInput" placeholder="1.80" value="1.80">
+            <div class="price-hint">Покупать лоты по этой цене и ниже</div>
+        </div>
+
+        <div class="card">
+            <div class="card-label">Статистика</div>
+            <div class="fps-row">
+                <span class="status-name">FPS</span>
+                <span class="fps-value" id="fpsValue">0</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-label">Статус</div>
+            <div class="status-row">
+                <span class="status-name">Overlay</span>
+                <span class="status-value" id="overlayStatus"><span class="status-dot"></span><span>Not</span></span>
+            </div>
+            <div class="status-row">
+                <span class="status-name">Bot</span>
+                <span class="status-value" id="botStatus"><span class="status-dot"></span><span>Stopped</span></span>
+            </div>
+        </div>
+
+        <button class="btn gold big" id="startBtn">
+            <span>▶  Запустить оверлей</span>
+        </button>
+    </div>
+
+    <!-- SETTINGS SCREEN -->
+    <div class="screen" id="screenSettings">
+        <div class="card">
+            <div class="card-label">Задержка между действиями</div>
+            <div class="slider-wrap">
+                <div class="slider-value" id="delayValue">50<span>мс</span></div>
+                <input type="range" min="10" max="100" step="5" value="50" id="delaySlider">
+                <div class="slider-labels"><span>10 мс</span><span>100 мс</span></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-label">Автонастройка</div>
+            <div class="price-hint" style="text-align:left; margin-bottom:12px;">
+                Подбор оптимальных задержек под твоё устройство
+            </div>
+            <button class="btn ghost" id="autoTuneBtn">
+                <span>⚙  Запустить автонастройку</span>
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="card-label">Информация</div>
+            <div class="price-hint" style="text-align:left;">
+                Aventador Trade · v1.0<br>
+                Логика кликов подключается отдельно
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+    <div class="nav-item active" id="navMain">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Главная</span>
+    </div>
+    <div class="nav-item" id="navSettings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span>Настройки</span>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+    const Native = {
+        available: typeof window.AventadorAndroid !== 'undefined',
+        hasOverlayPermission: () => Native.available && window.AventadorAndroid.hasOverlayPermission(),
+        requestOverlayPermission: () => Native.available && window.AventadorAndroid.requestOverlayPermission(),
+        startOverlay: (config) => Native.available && window.AventadorAndroid.startOverlay(config)
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    // ---- навигация ----
+    $('navMain').addEventListener('click', () => switchScreen('main'));
+    $('navSettings').addEventListener('click', () => switchScreen('settings'));
+
+    function switchScreen(name) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if (name === 'main') {
+            $('screenMain').classList.add('active');
+            $('navMain').classList.add('active');
+        } else {
+            $('screenSettings').classList.add('active');
+            $('navSettings').classList.add('active');
+        }
+    }
+
+    // ---- цена ----
+    const priceInput = $('priceInput');
+    priceInput.addEventListener('change', () => {
+        let v = parseFloat(priceInput.value);
+        if (isNaN(v) || v < 0) v = 0;
+        priceInput.value = v.toFixed(2);
+    });
+
+    // ---- задержка ----
+    const delaySlider = $('delaySlider');
+    const delayValue = $('delayValue');
+    delaySlider.addEventListener('input', () => {
+        delayValue.innerHTML = delaySlider.value + '<span>мс</span>';
+    });
+
+    // ---- автонастройка (заглушка) ----
+    $('autoTuneBtn').addEventListener('click', () => {
+        toast('Автонастройка: в разработке');
+    });
+
+    // ---- FPS (заглушка — 60 FPS) ----
+    let fps = 60;
+    setInterval(() => {
+        const el = $('fpsValue');
+        el.textContent = fps;
+        el.classList.remove('low','bad');
+        if (fps < 30) el.classList.add('bad');
+        else if (fps < 50) el.classList.add('low');
+    }, 500);
+
+    // ---- статусы ----
+    function setStatus(el, ok, text) {
+        el.classList.toggle('work', ok);
+        el.querySelector('span:last-child').textContent = text || (ok ? 'Work' : 'Not');
+    }
+
+    function refreshOverlay() {
+        setStatus($('overlayStatus'), Native.hasOverlayPermission());
+    }
+
+    // ---- Start ----
+    $('startBtn').addEventListener('click', () => {
+        if (!Native.hasOverlayPermission()) {
+            Native.requestOverlayPermission();
+            return;
+        }
+        const config = {
+            price: parseFloat(priceInput.value) || 0,
+            delay: parseInt(delaySlider.value) || 50
+        };
+        Native.startOverlay(config);
+        toast('Оверлей запущен');
+    });
+
+    // ---- toast ----
+    let toastTimer;
+    function toast(msg) {
+        const t = $('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    // ---- refresh при возврате ----
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) refreshOverlay();
+    });
+    window.addEventListener('focus', refreshOverlay);
+
+    refreshOverlay();
+    setInterval(refreshOverlay, 1500);
+})();
+</script>
+</body>
+</html>
